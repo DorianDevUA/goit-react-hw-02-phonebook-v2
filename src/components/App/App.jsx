@@ -2,7 +2,7 @@ import { Component } from 'react';
 import { nanoid } from 'nanoid';
 import { ContactForm } from '../ContactForm';
 import { ContactList } from '../ContactList';
-import { Filter } from '../Filter';
+import { SearchBox } from '../SearchBox';
 import contacts from '../../contacts.json';
 
 export class App extends Component {
@@ -11,38 +11,44 @@ export class App extends Component {
     filter: '',
   };
 
-  addContact = (name, number) => {
+  checkNameInContacts = name => {
     const { contacts } = this.state;
     const normalizedName = name.toLowerCase();
 
-    const isNameExist = contacts.some(
-      ({ name }) => name.toLowerCase() === normalizedName,
+    return contacts.some(
+      contact => contact.name.toLowerCase() === normalizedName,
     );
+  };
+
+  addContact = (name, number) => {
+    const isNameExist = this.checkNameInContacts(name);
 
     if (isNameExist) {
-      alert(`Контакт на ім'я ${name} вже існує!`);
+      alert(`Контакт "${name}" вже існує!`);
       return;
     }
 
+    const contactId = nanoid();
     const newContact = {
-      id: nanoid(),
+      id: contactId,
       name,
       number,
     };
 
-    this.setState(({ contacts }) => ({
-      contacts: [newContact, ...contacts],
-    }));
+    this.setState(({ contacts }) => ({ contacts: [newContact, ...contacts] }));
   };
 
   deleteContact = contactId => {
-    this.setState(({ contacts }) => ({
-      contacts: contacts.filter(({ id }) => id !== contactId),
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(({ id }) => id !== contactId),
     }));
+
+    console.log('Removed contact with ID:', contactId);
   };
 
-  handleFilterChange = evt => {
-    this.setState({ filter: evt.target.value });
+  handleSearch = evt => {
+    const { value } = evt.target;
+    this.setState({ filter: value });
   };
 
   getFilteredContacts = () => {
@@ -54,26 +60,19 @@ export class App extends Component {
     );
   };
 
-  getTotalContacts = () => {
-    const { contacts } = this.state;
-    return contacts.length;
-  };
-
   render() {
     const { filter } = this.state;
-    const filtredContacts = this.getFilteredContacts();
-    const totalContacts = this.getTotalContacts();
+    const filteredContacts = this.getFilteredContacts();
 
     return (
       <div>
         <h1>Phonebook</h1>
-        <p>Всього контактів: {totalContacts}</p>
         <ContactForm onSubmit={this.addContact} />
 
         <h2>Contacts</h2>
-        <Filter value={filter} onChange={this.handleFilterChange} />
+        <SearchBox value={filter} onChange={this.handleSearch} />
         <ContactList
-          contacts={filtredContacts}
+          contacts={filteredContacts}
           onDeleteContact={this.deleteContact}
         />
       </div>

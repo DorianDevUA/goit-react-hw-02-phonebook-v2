@@ -1,11 +1,11 @@
-import { ContactItem } from '../ContactItem';
+import { Contact } from '../Contact';
 
 export function ContactList({ contacts, onDeleteContact }) {
   return (
     <ul>
       {contacts.map(({ id, name, number }) => {
         return (
-          <ContactItem
+          <Contact
             key={id}
             id={id}
             name={name}
